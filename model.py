@@ -11,7 +11,7 @@ def get_length(sequence):
 
 
 class Model(object):
-	def __init__(self, hidden_size = 75, is_training= True):
+	def __init__(self, hidden_size = 75, embedding_size = 300, is_training= True):
 		self.start_index = tf.placeholder(tf.int32, [None])                     #[batch_size]
 		self.stop_index = tf.placeholder(tf.int32, [None]) 		                #[batch_size]
 		#self.dropout_rate = tf.placeholder(tf.int32 , [1])			
@@ -19,8 +19,8 @@ class Model(object):
 		
 
 		with tf.name_scope("word-rep"):
-			self.question_repres = tf.placeholder(tf.float32, [10, 15, 300])   # [batch_size, question_len, word_dim]
-			self.passage_repres = tf.placeholder(tf.float32, [10, 15, 300])    # [batch_size, passage_len, word_dim]
+			self.question_repres = tf.placeholder(tf.float32, [None, None, embedding_size])   # [batch_size, question_len, word_dim]
+			self.passage_repres = tf.placeholder(tf.float32, [None, None, embedding_size])    # [batch_size, passage_len, word_dim]
 
 			self.question_lengths = get_length(self.question_repres)				#[batch_size]
 			self.passage_lengths = get_length(self.passage_repres)					#[batch_size]
@@ -63,7 +63,6 @@ class Model(object):
 					if is_training: char_lstm_cell = tf.nn.rnn_cell.DropoutWrapper(char_lstm_cell, 
 						output_keep_prob=(1 - dropout_rate))
 					char_lstm_cell = tf.nn.rnn_cell.MultiRNNCell([char_lstm_cell])
-
 					# question_representation
 					question_char_outputs = my_rnn.dynamic_rnn(char_lstm_cell, question_char_repres, 
 							sequence_length=question_char_lengths,dtype=tf.float32)[0] # [batch_size*question_len, q_char_len, char_lstm_dim]
@@ -79,9 +78,7 @@ class Model(object):
 					
 				question_repres.append(question_char_outputs)
 				passage_repres.append(passage_char_outputs)
-
 				input_dim += char_lstm_dim
-
 		question_repres = tf.concat(2, question_repres) # [batch_size, question_len, dim]
 		passage_repres = tf.concat(2, passage_repres) # [batch_size, passage_len, dim]
 		"""
@@ -262,7 +259,7 @@ class Model(object):
 				with tf.variable_scope("par"):
 					w_v_q = tf.get_variable(shape = [hidden_size, hidden_size],name = 'w_v_q')
 					w_u_q = tf.get_variable(shape = [hidden_size, hidden_size],name = 'w_u_q')
-					V_r_q = tf.get_variable(shape = [15, hidden_size],name = 'V_r_q')
+					V_r_q = tf.get_variable(shape = [15, hidden_size],name = 'V_r_q')				#15 : question_len
 					e = tf.get_variable(shape = [hidden_size,1],name = 'e')
 				shape_u_q = tf.shape(u_q)
 				sum_m = tf.reshape(tf.matmul(tf.reshape(u_q,[-1,hidden_size]),w_u_q),shape_u_q)
@@ -270,28 +267,68 @@ class Model(object):
 				s = tf.matmul(tf.reshape(tf.tanh(sum_m),[-1,hidden_size]),e)  # [bs*len,1]
 				exps = tf.reshape(tf.exp(s), [-1, question_len])
 				alphas = exps / tf.reshape(tf.reduce_sum(exps, 1), [-1, 1])
-				initial_s = tf.reduce_sum(u_q * tf.reshape(alphas, [-1, question_len, 1]), 1)  #[batch_size,es]
+				initial_s = tf.reduce_sum(u_q * tf.reshape(alphas, [-1, question_len, 1]), 1)  #[batch_size,hidden_size]
+				c_ = tf.zeros(shape = tf.shape(initial_s), dtype = tf.float32)
+				
 
 			with tf.name_scope("answer_recurrent_network"):
 				answer_lstm = tf.contrib.rnn.BasicLSTMCell(hidden_size)
-				predictions = []
-				shape_h_p = tf.shape(h_p)
-				for i in range(2):
+				
+				def pred_2()
+
+				def pred(i, h):
+					shape_h_p = tf.shape(h_p)
+					
 					with tf.variable_scope('wi'):
 						w_h_p = tf.get_variable(shape = [hidden_size,hidden_size], name = "w_h_p")
 						w_h_a = tf.get_variable(shape = [hidden_size,hidden_size], name = "w_h_a")
 						w_h_e = tf.get_variable(shape = [hidden_size,1], name = "w_h_e")
 					
-					sum_m = tf.reshape(tf.reshape(tf.matmul(tf.reshape(h_p,[-1,hidden_size]),w_h_p),shape_h_p) + tf.matmul(initial_s,w_h_a),[-1,hidden_size])
-					s = tf.matmul(tf.tanh(sum_m),e)
-					exps = tf.reshape(tf.exp(s), [-1, passage_len])
-					alphas = exps / tf.reshape(tf.reduce_sum(exps, 1), [-1, 1])
-					predictions.append(alphas)
-					alphas = tf.reshape(alphas, [-1,passage_len,1])
-					#a_k = tf.reduce_sum(q_i* tf.reshape(alphas, [len_q_i, 1]), 0)
-					input_a = tf.reduce_sum(h_p*alphas, 1)
-					_, intial_s = answer_lstm.call(input_a ,intial_s)
+					if(i==0):
 
+
+
+					i = tf.add(i,1)
+					return i,h
+
+				predictions = []
+				i = tf.constant(0)
+				b = lambda x,y : pred(x,y)
+				c = lambda x,y : tf.less(x,tf.cast(batch_size, tf.int32))
+				res = tf.while_loop(cond = c, body =b, 
+									 loop_vars = (i,predictions))
+
+				"""
+				predictions = []
+				shape_h_p = tf.shape(h_p)
+				with tf.variable_scope('wi'):
+					w_h_p = tf.get_variable(shape = [hidden_size,hidden_size], name = "w_h_p")
+					w_h_a = tf.get_variable(shape = [hidden_size,hidden_size], name = "w_h_a")
+					w_h_e = tf.get_variable(shape = [hidden_size,1], name = "w_h_e")
+				for i in range(2):
+					if(i==0):
+						sum_m = tf.reshape(tf.reshape(tf.matmul(tf.reshape(h_p,[-1,hidden_size]),w_h_p),shape_h_p) + tf.matmul(initial_s,w_h_a),[-1,hidden_size])
+						s = tf.matmul(tf.tanh(sum_m),e)
+						exps = tf.reshape(tf.exp(s), [-1, passage_len])
+						alphas = exps / tf.reshape(tf.reduce_sum(exps, 1), [-1, 1])
+						predictions.append(alphas)
+						alphas = tf.reshape(alphas, [-1,passage_len,1])
+						#a_k = tf.reduce_sum(q_i* tf.reshape(alphas, [len_q_i, 1]), 0)
+						input_a = tf.reduce_sum(h_p*alphas, 1)
+						
+						initial_s = tf.tuple([initial_s,initial_s])
+					else:
+						sum_m = tf.reshape(tf.reshape(tf.matmul(tf.reshape(h_p,[-1,hidden_size]),w_h_p),shape_h_p) + tf.matmul(initial_s.h,w_h_a),[-1,hidden_size])
+						s = tf.matmul(tf.tanh(sum_m),e)
+						exps = tf.reshape(tf.exp(s), [-1, passage_len])
+						alphas = exps / tf.reshape(tf.reduce_sum(exps, 1), [-1, 1])
+						predictions.append(alphas)
+						alphas = tf.reshape(alphas, [-1,passage_len,1])
+						#a_k = tf.reduce_sum(q_i* tf.reshape(alphas, [len_q_i, 1]), 0)
+						input_a = tf.reduce_sum(h_p*alphas, 1)
+					
+					_, initial_s = answer_lstm.call(input_a ,initial_s)
+					"""
 
 		with tf.name_scope("loss"):
 			pred_start = predictions[0]   # [batch_size, passage_len]
