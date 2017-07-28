@@ -1,7 +1,7 @@
 # machine-comprehension
 MACHINE READING COMPREHENSION WITH SELF-MATCHING NETWORKS
-
 (IN PROGRESS)
+
 
 This repo contains TensorFlow implementation of -
 
