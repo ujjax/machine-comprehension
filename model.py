@@ -274,31 +274,6 @@ class Model(object):
 			with tf.name_scope("answer_recurrent_network"):
 				answer_lstm = tf.contrib.rnn.BasicLSTMCell(hidden_size)
 				
-				def pred_2()
-
-				def pred(i, h):
-					shape_h_p = tf.shape(h_p)
-					
-					with tf.variable_scope('wi'):
-						w_h_p = tf.get_variable(shape = [hidden_size,hidden_size], name = "w_h_p")
-						w_h_a = tf.get_variable(shape = [hidden_size,hidden_size], name = "w_h_a")
-						w_h_e = tf.get_variable(shape = [hidden_size,1], name = "w_h_e")
-					
-					if(i==0):
-
-
-
-					i = tf.add(i,1)
-					return i,h
-
-				predictions = []
-				i = tf.constant(0)
-				b = lambda x,y : pred(x,y)
-				c = lambda x,y : tf.less(x,tf.cast(batch_size, tf.int32))
-				res = tf.while_loop(cond = c, body =b, 
-									 loop_vars = (i,predictions))
-
-				"""
 				predictions = []
 				shape_h_p = tf.shape(h_p)
 				with tf.variable_scope('wi'):
@@ -328,7 +303,7 @@ class Model(object):
 						input_a = tf.reduce_sum(h_p*alphas, 1)
 					
 					_, initial_s = answer_lstm.call(input_a ,initial_s)
-					"""
+					
 
 		with tf.name_scope("loss"):
 			pred_start = predictions[0]   # [batch_size, passage_len]
@@ -353,5 +328,3 @@ class Model(object):
 
 			correct_stop = tf.equal(tf.argmax(pred_stop, 1), self.stop_index)
 			self.accuracy_stop = tf.reduce_mean(tf.cast(correct_stop, 'float'))
-
-model = Model()
