@@ -9,5 +9,10 @@ This repo contains TensorFlow implementation of -
 S-NET: FROM ANSWER EXTRACTION TO ANSWER
 GENERATION FOR MACHINE READING COMPREHENSION.
 (EVIDENCE EXTRACTION)
-
 https://arxiv.org/pdf/1706.04815.pdf
+
+
+
+R-NET: MACHINE READING COMPREHENSION WITH
+SELF-MATCHING NETWORKS
+https://www.microsoft.com/en-us/research/wp-content/uploads/2017/05/r-net.pdf
