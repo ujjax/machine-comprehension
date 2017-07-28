@@ -1,2 +1,13 @@
 # machine-comprehension
 MACHINE READING COMPREHENSION WITH SELF-MATCHING NETWORKS
+
+(IN PROGRESS)
+
+This repo contains TensorFlow implementation of -
+
+
+S-NET: FROM ANSWER EXTRACTION TO ANSWER
+GENERATION FOR MACHINE READING COMPREHENSION.
+
+
+https://arxiv.org/pdf/1706.04815.pdf
