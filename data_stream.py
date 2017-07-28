@@ -22,7 +22,7 @@ def find_all(a_str, sub):
 def get_batches(inpath=None,word_vocab = None, char_vocab = None, batch_size = 60,
 	 isShuffle=False, isLoop=False, isSort=True, max_char_per_word=10, max_sent_length=200):
 
-	with open('/media/amit/FE42C05442C01377/Ujjawal/edge/data/train-v1.1.json', 'rb') as f:
+	with open('train-v1.1.json', 'rb') as f:
 		dataset = json.load(f)
 
 	for article in dataset['data']:
