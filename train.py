@@ -128,7 +128,7 @@ with tf.Graph().as_default():
 				q_batch, p_batch, start_batch, stop_batch = next(g)
 				train_step(q_batch, p_batch, start_batch, stop_batch)
 			except StopIteration:
-				saver.save(sess, '/home/ujjawal/resume_parser/saved_models2/charmodel.ckpt')
+				saver.save(sess, '/home/ujjawal/.ckpt')
 				i+=1
 				g = get_batches()
 				val_step(writer = dev_summary_writer)
